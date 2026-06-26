@@ -6,10 +6,19 @@ schema when available (lossless field extraction), otherwise asks Haiku to summa
 
 from __future__ import annotations
 
+import json
+import logging
 from typing import TYPE_CHECKING
+
+from tiktoken import get_encoding
+
+from contextos.schemas.registry import get_schema
 
 if TYPE_CHECKING:
     from anthropic import Anthropic
+
+
+logger = logging.getLogger(__name__)
 
 
 class ToolResultCompressor:
@@ -22,8 +31,12 @@ class ToolResultCompressor:
             client: Anthropic SDK client (used only when no schema matches).
             model: Haiku model id, e.g. "claude-haiku-4-5-20251001".
         """
-        # Step 1: Save client and model on self for later use.
-        raise NotImplementedError
+        self.client = client
+        self.model = model
+        # tiktoken only knows OpenAI model names, so use a fixed encoding. This
+        # is an approximate token count for Claude (off ~15-20%), which is fine
+        # for the before/after logging ratios.
+        self.encoding = get_encoding("cl100k_base")
 
     def compress(self, tool_name: str, raw_result: dict) -> str:
         """Compress one tool result to a string under ~100 tokens.
@@ -35,13 +48,33 @@ class ToolResultCompressor:
         Returns:
             A compressed string representation, always < 100 tokens.
         """
-        # Step 1: Count tokens of raw_result (tiktoken) -> tokens_before, for logging.
-        # Step 2: Look up tool_name in schema_registry (schemas.registry.get_schema).
-        # Step 3a: If a schema exists -> extract only those fields, format compactly.
-        # Step 3b: If no schema -> call self._summarize(raw_result) via Haiku.
-        # Step 4: Count tokens of the result -> tokens_after; log tool_name/before/after.
-        # Step 5: Return the compressed string.
-        raise NotImplementedError
+        tokens_before = len(self.encoding.encode(json.dumps(raw_result)))
+
+        schema = get_schema(tool_name)
+
+        if not schema:
+            result = self._summarize(raw_result)  # haiku summary
+        else:
+            schema_result = self.extract_fields(raw_result, schema)
+            result = self.format_compactly(schema_result)
+
+        tokens_after = len(self.encoding.encode(result))
+
+        logger.info(
+            "tool_name=%s tokens_before=%d tokens_after=%d",
+            tool_name,
+            tokens_before,
+            tokens_after,
+        )
+        return result
+
+    def extract_fields(self, raw_result: dict, schema: list[str]) -> dict:
+        """Extract the fields from the raw result according to the schema."""
+        return {field: raw_result[field] for field in schema}
+
+    def format_compactly(self, result: dict) -> str:
+        """Format the result compactly."""
+        return json.dumps(result)
 
     def _summarize(self, raw_result: dict) -> str:
         """Fallback: ask Haiku to summarize an unknown tool result in < 100 tokens.
@@ -53,6 +86,17 @@ class ToolResultCompressor:
             A Haiku-generated summary string.
         """
         # Step 1: Build a compact prompt (keep prompt < 200 input tokens per conventions).
+        prompt = (
+            "Summarize this tool result in under 100 tokens, keeping only the "
+            f"facts an agent would need to continue its task:\n{raw_result}"
+        )
+
         # Step 2: Call self.client.messages.create with self.model.
-        # Step 3: Extract and return the text content.
-        raise NotImplementedError
+        response = self.client.messages.create(
+            model=self.model,
+            max_tokens=100,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return "".join(
+            block.text for block in response.content if block.type == "text"
+        )
