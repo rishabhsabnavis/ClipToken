@@ -1,6 +1,6 @@
 # ContextOS
 
-**A drop-in middleware that compresses LLM-agent context before each API call — and learns to lose less over time.**
+**A drop-in middleware that compresses LLM-agent context before each API call, and learns to lose less over time.**
 
 Long-running LLM agents resend their entire conversation on every call, so token
 cost and latency grow without bound. ContextOS sits between an agent and the model
@@ -11,7 +11,7 @@ Anthropic Messages API, adoption is a one-line `base_url` change.
 What makes it different from a fixed "summarize anything older than N turns" rule:
 ContextOS keeps every original recoverable, **detects when a past compression made the
 agent re-request something it needed**, and updates its compression policy so it stops
-making that mistake — getting *less* lossy over time while staying compressed.
+making that mistake, getting *less* lossy over time while staying compressed.
 
 ---
 
