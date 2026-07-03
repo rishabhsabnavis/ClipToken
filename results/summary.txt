@@ -1,0 +1,55 @@
+ContextOS loss-over-time benchmark  (2026-07-03 19:27:50 UTC)
+============================================================
+sessions replayed         : 40
+calls per session         : 30
+initial loss rate         : 40.0%  (session 0)
+final loss rate (last 10) : 10.3%
+final compression (last10): 65.0%
+loss reduction            : 40.0% -> 10.3%
+
+PASS criteria:
+  loss in 10-20% band : YES (10.3%)
+  compression >= 50%  : YES (65.0%)
+  loss fell over time : YES
+
+Per-session curve (loss_rate | compression_ratio):
+  s00  loss=0.40 comp=0.82  ################
+  s01  loss=0.27 comp=0.79  ##########
+  s02  loss=0.17 comp=0.73  ######
+  s03  loss=0.07 comp=0.70  ##
+  s04  loss=0.03 comp=0.70  #
+  s05  loss=0.10 comp=0.72  ####
+  s06  loss=0.17 comp=0.68  ######
+  s07  loss=0.20 comp=0.68  ########
+  s08  loss=0.13 comp=0.71  #####
+  s09  loss=0.13 comp=0.71  #####
+  s10  loss=0.10 comp=0.68  ####
+  s11  loss=0.07 comp=0.73  ##
+  s12  loss=0.20 comp=0.70  ########
+  s13  loss=0.07 comp=0.66  ##
+  s14  loss=0.33 comp=0.66  #############
+  s15  loss=0.07 comp=0.65  ##
+  s16  loss=0.17 comp=0.66  ######
+  s17  loss=0.23 comp=0.67  #########
+  s18  loss=0.23 comp=0.67  #########
+  s19  loss=0.07 comp=0.67  ##
+  s20  loss=0.17 comp=0.65  ######
+  s21  loss=0.13 comp=0.65  #####
+  s22  loss=0.23 comp=0.65  #########
+  s23  loss=0.07 comp=0.65  ##
+  s24  loss=0.03 comp=0.65  #
+  s25  loss=0.07 comp=0.65  ##
+  s26  loss=0.10 comp=0.65  ####
+  s27  loss=0.07 comp=0.65  ##
+  s28  loss=0.13 comp=0.65  #####
+  s29  loss=0.10 comp=0.65  ####
+  s30  loss=0.10 comp=0.65  ####
+  s31  loss=0.03 comp=0.65  #
+  s32  loss=0.07 comp=0.65  ##
+  s33  loss=0.07 comp=0.65  ##
+  s34  loss=0.13 comp=0.65  #####
+  s35  loss=0.20 comp=0.65  ########
+  s36  loss=0.10 comp=0.65  ####
+  s37  loss=0.17 comp=0.65  ######
+  s38  loss=0.10 comp=0.65  ####
+  s39  loss=0.07 comp=0.65  ##

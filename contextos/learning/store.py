@@ -41,7 +41,9 @@ class FidelityStore:
         Path(db_path).parent.mkdir(parents=True, exist_ok=True)
 
 
-        self.conn = sqlite3.connect(db_path)
+        # check_same_thread=False: FastAPI serves requests from a threadpool, so the
+        # connection created here (import thread) is reused across worker threads.
+        self.conn = sqlite3.connect(db_path, check_same_thread=False)
 
 
         #         (columns: hash TEXT PRIMARY KEY, content TEXT).

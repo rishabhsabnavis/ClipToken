@@ -62,6 +62,11 @@ class Turn:
     summary: str | None = None
     level: str = "verbatim"  # "verbatim" | "bullet" | "sentence" | "drop"
     fidelity_ref: str | None = None  # content hash in FidelityStore, if compressed
+    # Set by the pipeline so the AdaptiveCompressor can build a Segment whose
+    # (segment_type, tool_name) key matches the one the LossDetector attributes loss
+    # to -- this is what closes the learning loop end to end.
+    segment_type: str | None = None  # "tool_result" | "assistant_reasoning" | "user"
+    tool_name: str | None = None  # tool that produced this turn's content, if any
 
 
 @dataclass

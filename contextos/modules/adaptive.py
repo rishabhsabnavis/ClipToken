@@ -204,12 +204,16 @@ class AdaptiveCompressor:
     # ------------------------------------------------------------------
 
     def _classify(self, turn: Turn) -> tuple[str, str | None]:
-        """Infer a coarse (segment_type, tool_name) from a turn.
+        """Return the turn's (segment_type, tool_name) for the policy to key on.
 
-        Turn content here is a plain string, so this is a heuristic: assistant
-        turns are reasoning, user turns are user input. Structured tool-result
-        detection is left to the pipeline, which has the raw message blocks.
+        The pipeline sets ``turn.segment_type`` / ``turn.tool_name`` from the raw
+        message blocks (it can see tool_result blocks that the flattened content
+        cannot), so prefer those. This keys the decision-time Segment to the same
+        ``(segment_type, tool_name)`` the LossDetector blames loss on, closing the
+        learning loop. Fall back to a coarse role heuristic when untagged.
         """
+        if turn.segment_type is not None:
+            return turn.segment_type, turn.tool_name
         if turn.role == "assistant":
             return "assistant_reasoning", None
         return "user", None

@@ -8,6 +8,9 @@ here, making that tool near-lossless from then on.
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 # Seed schemas: tool_name -> list of fields worth keeping from its raw result.
 # Start small; the learning loop fills this in over time.
 schema_registry: dict[str, list[str]] = {
@@ -27,7 +30,7 @@ def get_schema(tool_name: str) -> list[str] | None:
     """
     # Step 1: Look up tool_name in schema_registry.
     # Step 2: Return the field list if present, else None.
-    raise NotImplementedError
+    return schema_registry.get(tool_name)
 
 
 def learn_schema(tool_name: str, fields: list[str]) -> None:
@@ -40,5 +43,36 @@ def learn_schema(tool_name: str, fields: list[str]) -> None:
         fields: fields observed to matter for downstream task success.
     """
     # Step 1: Merge `fields` into any existing entry for tool_name (union, keep order).
+    merged = list(schema_registry.get(tool_name, []))
+    for field_name in fields:
+        if field_name not in merged:
+            merged.append(field_name)
     # Step 2: Store back into schema_registry.
-    raise NotImplementedError
+    schema_registry[tool_name] = merged
+
+
+def save_registry(path: str) -> None:
+    """Persist auto-learned schemas to disk so learning survives restarts.
+
+    Args:
+        path: JSON file to write the current schema_registry to.
+    """
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    Path(path).write_text(json.dumps(schema_registry, indent=2))
+
+
+def load_registry(path: str) -> None:
+    """Merge schemas previously persisted by save_registry into the live registry.
+
+    Seeds already present are kept; loaded entries are merged field-wise so a restart
+    resumes with everything the learning loop had promoted.
+
+    Args:
+        path: JSON file previously written by save_registry (ignored if absent).
+    """
+    file = Path(path)
+    if not file.exists():
+        return
+    loaded: dict[str, list[str]] = json.loads(file.read_text())
+    for tool_name, fields in loaded.items():
+        learn_schema(tool_name, fields)

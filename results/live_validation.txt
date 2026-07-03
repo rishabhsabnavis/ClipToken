@@ -1,0 +1,2 @@
+[2026-07-02 16:10:24 UTC] live_validation compression_ratio=0.696 tokens_before=766 tokens_after=233 api_ok=True answer_chars=1083
+[2026-07-03 19:27:14 UTC] live_validation compression_ratio=0.715 tokens_before=766 tokens_after=218 api_ok=True answer_chars=943

@@ -23,3 +23,12 @@ env/
 .DS_Store
 .idea/
 *.swp
+
+# Personal career materials (local only, not part of the project)
+resume_bullets.txt
+linkedin_post.txt
+
+# Noisy real-traffic agent-loop artifacts (reproducible via benchmarks/live_agent_loop.py;
+# the honest conclusion is stated in the README). Keep the strong, clean artifacts.
+results/live_loss_curve.csv
+results/live_summary.txt

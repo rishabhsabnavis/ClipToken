@@ -1,0 +1,12 @@
+[2026-07-03 19:27:51] token_reduction tokens_before=766 tokens_after=120 compression_ratio=0.843 modules=compressor,adaptive
+[2026-07-03 19:27:51] reversibility recovered_turns=7 all_byte_exact=True
+[2026-07-03 19:27:51] detector_rerequest events=1 signal=re_request
+[2026-07-03 19:27:51] learning_loop_closed tool=web_search before=bullet after=verbatim
+[2026-07-03 19:27:52] schema_promotion tool=get_config fields=['service', 'DEPLOY_TOKEN'] persisted=True
+[2026-07-03 19:27:52] endpoint status=200 compression_ratio=0.843 loss_events=0
+[2026-07-03 20:25:58] token_reduction tokens_before=766 tokens_after=120 compression_ratio=0.843 modules=compressor,adaptive
+[2026-07-03 20:25:58] reversibility recovered_turns=7 all_byte_exact=True
+[2026-07-03 20:25:58] detector_rerequest events=1 signal=re_request
+[2026-07-03 20:25:58] learning_loop_closed tool=web_search before=bullet after=verbatim
+[2026-07-03 20:26:00] schema_promotion tool=get_config fields=['service', 'DEPLOY_TOKEN'] persisted=True
+[2026-07-03 20:26:00] endpoint status=200 compression_ratio=0.843 loss_events=0

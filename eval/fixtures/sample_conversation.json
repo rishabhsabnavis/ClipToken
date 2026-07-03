@@ -1,0 +1,65 @@
+{
+  "model": "claude-sonnet-4-6",
+  "max_tokens": 1024,
+  "system": "You are a research assistant. Use tools to gather facts, then answer.",
+  "tools": [
+    {"name": "web_search", "description": "Search the web", "input_schema": {"type": "object", "properties": {"query": {"type": "string"}}}},
+    {"name": "read_file", "description": "Read a file", "input_schema": {"type": "object", "properties": {"path": {"type": "string"}}}},
+    {"name": "fetch_url", "description": "Fetch a URL", "input_schema": {"type": "object", "properties": {"url": {"type": "string"}}}}
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "content": "Research the performance characteristics of the QuantumSort algorithm and summarize its time complexity."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {"type": "text", "text": "I'll search for the QuantumSort algorithm performance characteristics first."},
+        {"type": "tool_use", "id": "toolu_01", "name": "web_search", "input": {"query": "QuantumSort algorithm time complexity performance benchmark"}}
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {"type": "tool_result", "tool_use_id": "toolu_01", "content": {"query": "QuantumSort algorithm time complexity performance benchmark", "results": [{"title": "QuantumSort: A Novel Sorting Algorithm", "url": "https://example.com/quantumsort", "snippet": "QuantumSort achieves average-case time complexity of O(n log n) with a worst case of O(n^2) under adversarial inputs. Space complexity is O(n). Benchmarks on 1M elements show 2.3x speedup over quicksort in practice due to cache locality.", "rank": 1}, {"title": "Sorting Algorithms Survey 2025", "url": "https://example.com/survey", "snippet": "A broad survey of comparison-based and non-comparison sorts including radix, tim, and quantum variants. Discusses stability, adaptivity, and memory tradeoffs across 40 algorithms with extensive tables and citations that are largely irrelevant to a single algorithm question.", "rank": 2}, {"title": "Cache-Aware Sorting", "url": "https://example.com/cache", "snippet": "Details on cache-oblivious and cache-aware sorting strategies, funnelsort, and their asymptotic behavior. Contains a lengthy derivation of cache miss bounds that is tangential to QuantumSort specifically.", "rank": 3}], "total_results": 14200, "search_time_ms": 87}}
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {"type": "text", "text": "The top result looks authoritative. Let me fetch the full QuantumSort page to confirm the complexity claims."},
+        {"type": "tool_use", "id": "toolu_02", "name": "fetch_url", "input": {"url": "https://example.com/quantumsort"}}
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {"type": "tool_result", "tool_use_id": "toolu_02", "content": {"url": "https://example.com/quantumsort", "status": 200, "title": "QuantumSort: A Novel Sorting Algorithm", "body": "QuantumSort is a hybrid sorting algorithm. Average-case time complexity: O(n log n). Worst-case time complexity: O(n^2) when the input is adversarially ordered. Best-case: O(n) on nearly-sorted input due to an adaptive run-detection pass. Space complexity: O(n) auxiliary. The algorithm is stable. Empirical benchmarks: on 1,000,000 uniformly random 64-bit integers it sorts in 92ms versus 210ms for a tuned quicksort, a 2.3x speedup attributed to improved cache locality and branch prediction. On adversarial inputs the speedup disappears and it degrades to quadratic. The reference implementation is 340 lines of Rust. There is also a great deal of historical background about the authors, funding acknowledgements, a changelog spanning nine versions, and a comment section with 200 posts, none of which affect the complexity analysis.", "word_count": 1840}}
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {"type": "text", "text": "Confirmed. I also want to check whether there's a local benchmark file with independent numbers."},
+        {"type": "tool_use", "id": "toolu_03", "name": "read_file", "input": {"path": "/benchmarks/quantumsort_results.txt"}}
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {"type": "tool_result", "tool_use_id": "toolu_03", "content": {"path": "/benchmarks/quantumsort_results.txt", "content": "run,n,algorithm,ms\n1,1000000,quantumsort,92\n2,1000000,quicksort,210\n3,1000000,quantumsort,94\n4,1000000,quicksort,208\n5,1000000,quantumsort,adversarial,401\nNOTE: adversarial run confirms O(n^2) degradation. Average speedup on random data 2.25x. Memory measured at O(n).", "bytes": 512}}
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {"type": "text", "text": "The local benchmark corroborates the web source: ~2.25x speedup on random data and confirmed quadratic worst case. I have enough to summarize."}
+      ]
+    },
+    {
+      "role": "user",
+      "content": "Great. Now give me the final summary of QuantumSort's time complexity and the measured speedup."
+    }
+  ]
+}

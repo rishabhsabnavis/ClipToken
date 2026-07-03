@@ -69,8 +69,13 @@ class ToolResultCompressor:
         return result
 
     def extract_fields(self, raw_result: dict, schema: list[str]) -> dict:
-        """Extract the fields from the raw result according to the schema."""
-        return {field: raw_result[field] for field in schema}
+        """Extract the schema's fields from the raw result.
+
+        Uses ``.get`` so an auto-learned field that is missing from a particular
+        result yields ``None`` instead of raising -- learned schemas are a union of
+        fields seen across a tool's outputs, which any single result may not carry.
+        """
+        return {field: raw_result.get(field) for field in schema if field in raw_result}
 
     def format_compactly(self, result: dict) -> str:
         """Format the result compactly."""
