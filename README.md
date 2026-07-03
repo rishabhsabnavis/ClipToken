@@ -2,16 +2,16 @@
 
 **A drop-in middleware that compresses LLM-agent context before each API call, and learns to lose less over time.**
 
-Long-running LLM agents resend their entire conversation on every call, so token
-cost and latency grow without bound. ContextOS sits between an agent and the model
-provider, compresses each request (tool results, duplicate facts, stale history),
-forwards the smaller call, and returns the response unchanged. Because it mirrors the
-Anthropic Messages API, adoption is a one-line `base_url` change.
+Long-running LLM agents resend their whole conversation every call, so token cost and
+latency grow without bound. ContextOS sits between an agent and the model, compresses
+each request (tool results, duplicate facts, stale history), forwards the smaller call,
+and returns the response unchanged. It mirrors the Anthropic Messages API, so adoption
+is a one-line `base_url` change.
 
-What makes it different from a fixed "summarize anything older than N turns" rule:
-ContextOS keeps every original recoverable, **detects when a past compression made the
-agent re-request something it needed**, and updates its compression policy so it stops
-making that mistake, getting *less* lossy over time while staying compressed.
+Unlike a fixed "summarize anything older than N turns" rule, ContextOS keeps every
+original recoverable, **detects when a past compression made the agent re-request
+something it needed**, and updates its policy to stop repeating that mistake, getting
+*less* lossy over time while staying compressed.
 
 ---
 
@@ -19,18 +19,17 @@ making that mistake, getting *less* lossy over time while staying compressed.
 
 | Metric | Value | How it was measured |
 |---|---|---|
-| Token reduction on real API traffic | **~71%** | `eval/validate_live.py` — real Anthropic calls; the model's answer on the compressed context preserved every load-bearing fact (exact complexities, benchmark numbers) |
+| Token reduction on real API traffic | **~71%** | `eval/validate_live.py`: real Anthropic call; the answer kept every load-bearing fact |
 | Token reduction on the offline fixture | **~84%** | `eval/test_pipeline.py` (fake client) |
-| Loss rate across repeated sessions | **40% → 10%** while compression held at **~65%** | `benchmarks/loss_over_time.py` — session-replay **simulation** of the learning loop |
+| Loss rate across repeated sessions | **40% → 10%** while compression held **~65%** | `benchmarks/loss_over_time.py`: session-replay **simulation** |
 | Reversibility | 100% byte-exact recovery of compressed turns | `eval/test_pipeline.py` |
 
-**Honesty note (please read):** the clean *loss-falls-over-time* curve is produced by a
-**simulation** that isolates the learning dynamics. On **real agent traffic**
-(`benchmarks/live_agent_loop.py`) the full loop — loss detection → policy update →
-schema promotion — was observed firing end-to-end and *does* converge, but the path is
-noisy because real agent behavior is stochastic and two compression stages learn
-independently. The compression numbers above are from real API calls; the smooth
-learning curve is simulation-backed. See [What's validated vs simulated](#whats-validated-vs-simulated).
+**Honesty note (please read):** the compression numbers above are from real API calls.
+The clean *loss-falls-over-time* curve is from a **simulation** that isolates the
+learning dynamics. On **real agent traffic** (`benchmarks/live_agent_loop.py`) the full
+loop (loss detection → policy update → schema promotion) fires end-to-end and *does*
+converge, but noisily (real agents are stochastic and two compression stages learn
+independently). See [What's validated vs simulated](#whats-validated-vs-simulated).
 
 ![loss falls over sessions while compression stays high](results/loss_curve.png)
 
@@ -62,11 +61,11 @@ ContextOS  (POST /v1/messages)
 Model provider (Anthropic) → response returned to the agent unchanged
 ```
 
-The two paths connect at Module 4 (which consults the policy) and the learning loop:
-every original is written to the FidelityStore before compression, the LossDetector
-watches responses for re-requests, and each loss event teaches the policy to protect
-that kind of content — and promotes the offending tool's useful fields into a schema so
-Module 1 compresses it *deterministically and near-losslessly* from then on.
+The paths connect at Module 4, which consults the policy. Every original is written to
+the FidelityStore before compression; the LossDetector watches for re-requests; and each
+loss event teaches the policy to protect that content and promotes the tool's useful
+fields into a schema, so Module 1 compresses it *deterministically and near-losslessly*
+from then on.
 
 ---
 
@@ -97,9 +96,9 @@ client.messages.create(
 ```
 
 ### Endpoints
-- `POST /v1/messages` — Anthropic-compatible; compresses, forwards, learns.
-- `GET  /v1/stats/{session_id}` — tokens before/after, compression ratio, loss stats.
-- `GET  /v1/loss-curve` — loss rate + compression ratio per session (the headline artifact).
+- `POST /v1/messages`: Anthropic-compatible; compresses, forwards, learns.
+- `GET  /v1/stats/{session_id}`: tokens before/after, compression ratio, loss stats.
+- `GET  /v1/loss-curve`: loss rate + compression ratio per session (the headline artifact).
 
 ---
 
@@ -129,15 +128,14 @@ Artifacts land in `results/`.
 
 ## Known limitations
 
-- **Real-traffic learning is noisy.** Two compression stages (Module 1 and the adaptive
-  compressor) learn independently, and real agents behave stochastically, so the
-  loss curve is only clean in simulation. Faster/coordinated protection is future work.
-- **Schema learning is top-level + heuristic.** It keeps compact/needle fields and
-  drops verbose blobs; important data buried in large nested fields isn't pruned
-  intelligently yet.
-- **In-memory session state** resets on restart (the learned policy and schemas persist
-  to disk; per-session turn history does not). Redis is the production upgrade.
-- **English-optimized embeddings** — dedup quality degrades on multilingual content.
+- **Real-traffic learning is noisy.** Two stages (Module 1 and the adaptive compressor)
+  learn independently and real agents are stochastic, so the loss curve is only clean in
+  simulation. Faster, coordinated protection is future work.
+- **Schema learning is top-level + heuristic**: keeps compact/needle fields and drops
+  verbose blobs; data buried in large nested fields isn't pruned intelligently yet.
+- **In-memory session state** resets on restart (learned policy and schemas persist to
+  disk; per-session turn history does not). Redis is the production upgrade.
+- **English-optimized embeddings**: dedup quality degrades on multilingual content.
 
 ---
 
